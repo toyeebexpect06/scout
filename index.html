@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Scouter-style bulk email outreach dashboard">
+  <title>Scouter — Bulk Email Outreach</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">S</div>
+        <div>
+          <strong>Scouter</strong>
+          <span>Pro</span>
+        </div>
+      </div>
+
+      <nav>
+        <button class="nav-item active" data-section="outreach">✦ <span>Outreach</span></button>
+        <button class="nav-item" data-section="generated">▤ <span>Generated Emails</span></button>
+        <button class="nav-item" data-section="analytics">◒ <span>Analytics</span></button>
+        <button class="nav-item" data-section="templates">▧ <span>Templates</span></button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <button id="themeBtn" class="side-action">◐ <span>Toggle Theme</span></button>
+        <button id="clearDataBtn" class="side-action">⌫ <span>Clear Local Data</span></button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand">Scouter</div>
+        <div class="top-actions">
+          <button id="exportAllBtn" class="ghost-btn">Export All</button>
+          <button id="addRecipientBtn" class="primary-btn">+ Add Recipient</button>
+        </div>
+      </header>
+
+      <section id="outreachSection" class="section active-section">
+        <div class="page-heading">
+          <div>
+            <h1>Bulk Mail Send</h1>
+            <p>Generate personalized email links from your recipient list.</p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="left-column">
+            <div class="panel">
+              <div class="panel-title">
+                <div>
+                  <h2>Recipients</h2>
+                  <p>Upload CSV/TXT or paste email addresses.</p>
+                </div>
+                <div class="recipient-counts">
+                  <span class="valid">Valid <b id="validCount">0</b></span>
+                  <span class="invalid">Invalid <b id="invalidCount">0</b></span>
+                  <span>Total <b id="totalCount">0</b></span>
+                </div>
+              </div>
+
+              <textarea id="recipientInput" class="recipient-input" placeholder="john@example.com&#10;Sarah <sarah@example.com>&#10;store@example.com"></textarea>
+
+              <div class="upload-row">
+                <label class="file-btn">
+                  Choose CSV/TXT
+                  <input type="file" id="recipientFile" accept=".csv,.txt,text/csv,text/plain">
+                </label>
+                <span id="fileName">No file selected</span>
+                <button id="parseFileBtn" class="secondary-btn">Import</button>
+              </div>
+
+              <div class="recipient-preview" id="recipientPreview"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <div>
+                  <h2>Subject Lines & Message Bodies</h2>
+                  <p>Create up to 3 variants. Generation randomly assigns one matching subject/body pair to each recipient.</p>
+                </div>
+                <label class="switch-label">
+                  <input type="checkbox" id="shuffleToggle" checked>
+                  <span class="switch"></span>
+                  Shuffle variants
+                </label>
+              </div>
+
+              <div class="variant-grid" id="variantGrid"></div>
+
+              <div class="merge-help">
+                Personalization: <code>{name}</code> · <code>{email}</code> · <code>{domain}</code>
+              </div>
+
+              <button id="generateBtn" class="generate-btn">Generate Emails</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <div>
+                  <h2>Email Schedule</h2>
+                  <p>Store a planned send time with this campaign.</p>
+                </div>
+                <label class="switch-label">
+                  <input type="checkbox" id="scheduleToggle">
+                  <span class="switch"></span>
+                  Enable Schedule
+                </label>
+              </div>
+
+              <div class="schedule-grid">
+                <label>Schedule Date<input type="date" id="scheduleDate"></label>
+                <label>Schedule Time<input type="time" id="scheduleTime"></label>
+              </div>
+              <div class="notice">This front-end version generates email links. Actual bulk sending requires an email provider/API or backend.</div>
+            </div>
+          </div>
+
+          <div class="right-column">
+            <div class="panel stats-panel">
+              <div class="panel-title"><h2>Campaign Stats</h2></div>
+              <div class="stats-grid">
+                <div class="stat"><span>Sent</span><strong id="sentStat">0</strong></div>
+                <div class="stat"><span>Remaining</span><strong id="remainingStat">0</strong></div>
+                <div class="stat"><span>Total Generated</span><strong id="generatedStat">0</strong></div>
+                <div class="stat"><span>Sent (24h)</span><strong id="sent24Stat">0</strong></div>
+              </div>
+              <div class="progress"><span id="progressBar"></span></div>
+              <div class="progress-label"><span id="progressText">0% Complete</span><button id="clearGeneratedBtn">Clear</button></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">
+                <div>
+                  <h2>Generated Emails</h2>
+                  <p>Click an email to open your default mail app. Clicked items are marked.</p>
+                </div>
+                <div class="inline-actions">
+                  <button id="copyAllBtn" class="secondary-btn">Copy All</button>
+                  <button id="exportRemainingBtn" class="secondary-btn">Export Remaining</button>
+                </div>
+              </div>
+              <div id="emailList" class="email-list"></div>
+              <div id="emptyEmails" class="empty-state">No emails generated. Add recipients and generate emails.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="generatedSection" class="section">
+        <div class="page-heading">
+          <div><h1>Generated Emails</h1><p>Search, filter, copy, export, and review generated messages.</p></div>
+        </div>
+        <div class="panel">
+          <div class="toolbar">
+            <input id="emailSearch" placeholder="Search an email or name...">
+            <select id="statusFilter">
+              <option value="all">All</option>
+              <option value="sent">Sent / Clicked</option>
+              <option value="pending">Pending</option>
+            </select>
+          </div>
+          <div id="generatedTable"></div>
+        </div>
+      </section>
+
+      <section id="analyticsSection" class="section">
+        <div class="page-heading">
+          <div><h1>Email Analytics</h1><p>Local activity based on generated and clicked mail links.</p></div>
+        </div>
+        <div class="analytics-cards">
+          <div class="analytics-card"><span>Sent</span><strong id="analyticsSent">0</strong></div>
+          <div class="analytics-card"><span>Remaining</span><strong id="analyticsRemaining">0</strong></div>
+          <div class="analytics-card"><span>Click Rate</span><strong id="clickRate">0%</strong></div>
+          <div class="analytics-card"><span>Recipients</span><strong id="analyticsRecipients">0</strong></div>
+        </div>
+        <div class="panel">
+          <h2>Top Email Domains</h2>
+          <div id="domainChart" class="domain-chart"></div>
+        </div>
+      </section>
+
+      <section id="templatesSection" class="section">
+        <div class="page-heading">
+          <div><h1>Email Templates</h1><p>Save and reuse your 3-variant subject/body campaigns.</p></div>
+        </div>
+        <div class="template-actions">
+          <button id="saveTemplateBtn" class="primary-btn">Save Current Variants</button>
+        </div>
+        <div id="templateList" class="template-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="recipientModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-head"><h2>Add Recipient</h2><button class="close-modal">×</button></div>
+      <label>Name<input id="singleName" placeholder="John"></label>
+      <label>Email<input id="singleEmail" type="email" placeholder="john@example.com"></label>
+      <button id="saveRecipientBtn" class="primary-btn full">Add Recipient</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
